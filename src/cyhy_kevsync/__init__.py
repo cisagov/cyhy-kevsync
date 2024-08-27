@@ -4,6 +4,11 @@
 # although this import is not directly used, it populates the value
 # package_name.__version__, which is used to get version information about this
 # Python package.
-from ._version import __version__  # noqa: F401
 
-__all__ = []
+
+DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+
+from ._version import __version__  # noqa: F401
+from .sync import sync
+
+__all__ = [DEFAULT_KEV_URL, sync]
