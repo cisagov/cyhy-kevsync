@@ -13,6 +13,7 @@ from rich.traceback import install as traceback_install
 # cisagov Libraries
 from cyhy_config import find_config, read_config
 from ._version import __version__
+from . import sync
 
 
 def main() -> None:
@@ -65,6 +66,7 @@ def main() -> None:
         sys.exit(1)
 
     # TODO Do KEV syncing
+    sync()
 
     # Stop logging and clean up
     logging.shutdown()
