@@ -21,10 +21,9 @@ def main() -> None:
         description="Cyber Hygiene known exploited vulnerability (KEV) synchronization tool",
     )
     parser.add_argument(
-        "config_file",
+        "--config-file",
         help="path to the configuration file",
         metavar="config-file",
-        nargs="?",
         type=str,
     )
     parser.add_argument(
