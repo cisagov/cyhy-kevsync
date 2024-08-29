@@ -1,12 +1,12 @@
 """Test database connection."""
 
 # Third-Party Libraries
+from cyhy_db.models import KEVDoc
 from motor.motor_asyncio import AsyncIOMotorClient
 
 # cisagov Libraries
-from cyhy_kevsync import DEFAULT_KEV_URL
-from cyhy_kevsync.sync import fetch_kev_data, create_kev_doc, process_kev_json
-from cyhy_db.models import KEVDoc
+from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
+from cyhy_kevsync.sync import create_kev_doc, fetch_kev_data, process_kev_json
 
 CVE_1 = "CVE-2024-123456"
 VULN_1 = {"cveID": CVE_1, "knownRansomwareCampaignUse": "Known"}
