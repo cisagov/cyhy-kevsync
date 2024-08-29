@@ -11,7 +11,6 @@ from cyhy_config import find_config, read_config
 from cyhy_db import initialize_db
 from pydantic import ValidationError
 from rich.logging import RichHandler
-from rich.table import Table
 from rich.traceback import install as traceback_install
 
 
@@ -74,11 +73,6 @@ async def main_async() -> None:
     kev_data = await sync.fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     created_kev_docs = await sync.add_kev_docs(kev_data)
     removed_kev_docs = await sync.remove_outdated_kev_docs(created_kev_docs)
-
-    # # Create a Rich table summarizing the KEV synchronization
-    # table = Table(title="KEV Synchronization Summary")
-    # table.add_column("Action")
-    # table.add_column("Count")
 
     # Stop logging and clean up
     logging.shutdown()
