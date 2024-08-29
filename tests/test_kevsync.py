@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 # cisagov Libraries
 from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
-from cyhy_kevsync.kev_sync import fetch_kev_data, add_kev_docs, remove_outdated_kev_docs
+from cyhy_kevsync.kev_sync import add_kev_docs, fetch_kev_data, remove_outdated_kev_docs
 
 CVE_1 = "CVE-2024-123456"
 VULN_1 = {"cveID": CVE_1, "knownRansomwareCampaignUse": "Known"}

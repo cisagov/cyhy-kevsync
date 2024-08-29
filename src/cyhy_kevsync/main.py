@@ -13,8 +13,7 @@ from pydantic import ValidationError
 from rich.logging import RichHandler
 from rich.traceback import install as traceback_install
 
-
-from . import DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, kev_sync
+from . import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL, kev_sync
 from ._version import __version__
 
 
