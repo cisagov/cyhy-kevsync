@@ -7,7 +7,7 @@
 
 
 DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
-DEFAULT_KEV_SCHEMA = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json"
+DEFAULT_KEV_SCHEMA_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json"
 
 from ._version import __version__  # noqa: F401
 
