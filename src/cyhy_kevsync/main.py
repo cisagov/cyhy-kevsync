@@ -13,8 +13,9 @@ from pydantic import ValidationError
 from rich.logging import RichHandler
 from rich.traceback import install as traceback_install
 
-from . import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL, kev_sync
+from . import kev_sync
 from ._version import __version__
+from .models.config_model import KEVSyncConfig
 
 
 async def main_async() -> None:
@@ -53,6 +54,8 @@ async def main_async() -> None:
     # Set logging level for our package
     logger = logging.getLogger(__package__)
     logger.setLevel(args.log_level.upper())
+    logger = logging.getLogger("cyhy_config")
+    logger.setLevel(args.log_level.upper())
 
     # Set up tracebacks
     traceback_install(show_locals=True)
@@ -65,15 +68,15 @@ async def main_async() -> None:
 
     # Read the configuration file
     try:
-        config = read_config(config_file)
+        config = read_config(config_file, KEVSyncConfig)
     except ValidationError:
         sys.exit(1)
 
     # Initialize the database
-    await initialize_db(
-        config.databases["bastion"].auth_uri, config.databases["bastion"].name
+    await initialize_db(config.kevsync.db_auth_uri, config.kevsync.db_name)
+    kev_data = await kev_sync.fetch_kev_data(
+        config.kevsync.json_url, config.kevsync.schema_url
     )
-    kev_data = await kev_sync.fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     created_kev_docs = await kev_sync.add_kev_docs(kev_data)
     removed_kev_docs = await kev_sync.remove_outdated_kev_docs(created_kev_docs)
 
