@@ -42,14 +42,18 @@ async def main_async() -> None:
 
     args = parser.parse_args()
 
-    # Set up logging
+    # Set up root logging
     logging.basicConfig(
+        level="INFO",
         format="%(message)s",
-        level=args.log_level.upper(),
+        datefmt="[%X]",
         handlers=[
             RichHandler(rich_tracebacks=True, show_path=args.log_level == "debug")
         ],
     )
+    # Set logging level for our package
+    logger = logging.getLogger(__package__)
+    logger.setLevel(args.log_level.upper())
 
     # Set up tracebacks
     traceback_install(show_locals=True)
