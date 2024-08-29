@@ -84,7 +84,7 @@ setup(
     keywords="cyhy kev sync",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
-    package_data={},
+    package_data={"cyhy_kevsync": ["py.typed"]},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
         "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@first-commits",
