@@ -2,6 +2,7 @@
 
 # Standard Python Libraries
 import argparse
+import asyncio
 import logging
 import sys
 
@@ -12,11 +13,12 @@ from rich.traceback import install as traceback_install
 
 # cisagov Libraries
 from cyhy_config import find_config, read_config
+from cyhy_db import initialize_db
 from ._version import __version__
-from . import sync
+from . import sync, DEFAULT_KEV_URL
 
 
-def main() -> None:
+async def main_async() -> None:
     """Set up logging and call the process function."""
     parser = argparse.ArgumentParser(
         description="Cyber Hygiene known exploited vulnerability (KEV) synchronization tool",
@@ -43,7 +45,6 @@ def main() -> None:
     # Set up logging
     logging.basicConfig(
         format="%(message)s",
-        # datefmt="%Y-%m-%d %H:%M:%S",
         level=args.log_level.upper(),
         handlers=[
             RichHandler(rich_tracebacks=True, show_path=args.log_level == "debug")
@@ -65,8 +66,16 @@ def main() -> None:
     except ValidationError:
         sys.exit(1)
 
-    # TODO Do KEV syncing
-    sync()
+    # Initialize the database
+    await initialize_db(
+        config.databases["bastion"].auth_uri, config.databases["bastion"].name
+    )
+    kev_data = await sync.fetch_kev_data(DEFAULT_KEV_URL)
+    await sync.process_kev_json(kev_data)
 
     # Stop logging and clean up
     logging.shutdown()
+
+
+def main():
+    asyncio.run(main_async())
