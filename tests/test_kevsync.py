@@ -39,10 +39,18 @@ async def test_add_kev_docs():
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     # Check the count before processing
     before_count = await KEVDoc.count()
-    await add_kev_docs(kev_json_feed)
+    created_kev_docs = await add_kev_docs(kev_json_feed)
     # Check the count of KEV documents in the database
     after_count = await KEVDoc.count()
     assert after_count > before_count, "Expected more KEV documents after processing"
+    # Check that the returned list is correct
+    assert len(created_kev_docs) == len(
+        kev_json_feed["vulnerabilities"]
+    ), "Expected same number of KEV documents as in the KEV data"
+    # Check the types of the returned list
+    assert all(
+        isinstance(kev_doc, KEVDoc) for kev_doc in created_kev_docs
+    ), "Expected all KEV documents in the list to be of type KEVDoc"
 
 
 async def test_remove_outdated_kevs():

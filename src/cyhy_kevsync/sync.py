@@ -75,7 +75,7 @@ async def fetch_kev_data(
 
 async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
     """Process the KEV JSON data."""
-    created_kev_docs: List[str] = list()
+    created_kev_docs: List[KEVDoc] = list()
 
     for kev_json in track(
         kev_json_feed["vulnerabilities"],
@@ -88,7 +88,7 @@ async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
         kev_doc = KEVDoc(id=cve_id, known_ransomware=known_ransomware)
         await kev_doc.save()
         logger.debug("Created KEV document with id: %s", cve_id)
-        created_kev_docs += kev_doc
+        created_kev_docs.append(kev_doc)
 
     return created_kev_docs
 
