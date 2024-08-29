@@ -9,6 +9,5 @@
 DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 
 from ._version import __version__  # noqa: F401
-from .sync import sync
 
-__all__ = [DEFAULT_KEV_URL, sync]
+__all__ = [DEFAULT_KEV_URL]
