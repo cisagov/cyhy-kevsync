@@ -1,12 +1,10 @@
 """Model definitions for the configuration."""
 
 # Standard Python Libraries
-from pathlib import Path
-import re
-from typing import Any, Dict, List, Optional
+from typing import Optional
 
 # Third-Party Libraries
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from .. import DEFAULT_KEV_URL
 
@@ -16,8 +14,10 @@ class KEVSync(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    db_auth_uri: str = Field(pattern=r"^mongodb://", description="MongoDB URI")
-    db_name: str
+    db_auth_uri: str = Field(
+        pattern=r"^mongodb://", description="MongoDB connection URI"
+    )
+    db_name: str = Field(description="MongoDB database name")
     json_url: Optional[str] = Field(
         pattern=r"^https?://",
         default=DEFAULT_KEV_URL,
@@ -26,7 +26,7 @@ class KEVSync(BaseModel):
     schema_url: Optional[str] = Field(
         None,
         pattern=r"^https?://",
-        description="URL to the KEV JSON file",
+        description="URL to the KEV JSON schema file",
     )
 
 
