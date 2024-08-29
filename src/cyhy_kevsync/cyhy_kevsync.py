@@ -7,15 +7,14 @@ import logging
 import sys
 
 # Third-Party Libraries
+from cyhy_config import find_config, read_config
+from cyhy_db import initialize_db
 from pydantic import ValidationError
 from rich.logging import RichHandler
 from rich.traceback import install as traceback_install
 
-# cisagov Libraries
-from cyhy_config import find_config, read_config
-from cyhy_db import initialize_db
+from . import DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, sync
 from ._version import __version__
-from . import sync, DEFAULT_KEV_URL
 
 
 async def main_async() -> None:
@@ -70,7 +69,7 @@ async def main_async() -> None:
     await initialize_db(
         config.databases["bastion"].auth_uri, config.databases["bastion"].name
     )
-    kev_data = await sync.fetch_kev_data(DEFAULT_KEV_URL)
+    kev_data = await sync.fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     await sync.process_kev_json(kev_data)
 
     # Stop logging and clean up
