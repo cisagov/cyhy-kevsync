@@ -14,7 +14,7 @@ from rich.logging import RichHandler
 from rich.traceback import install as traceback_install
 
 
-from . import DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, sync
+from . import DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, kev_sync
 from ._version import __version__
 
 
@@ -74,9 +74,9 @@ async def main_async() -> None:
     await initialize_db(
         config.databases["bastion"].auth_uri, config.databases["bastion"].name
     )
-    kev_data = await sync.fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
-    created_kev_docs = await sync.add_kev_docs(kev_data)
-    removed_kev_docs = await sync.remove_outdated_kev_docs(created_kev_docs)
+    kev_data = await kev_sync.fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
+    created_kev_docs = await kev_sync.add_kev_docs(kev_data)
+    removed_kev_docs = await kev_sync.remove_outdated_kev_docs(created_kev_docs)
 
     # Stop logging and clean up
     logging.shutdown()
