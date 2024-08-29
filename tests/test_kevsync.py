@@ -19,8 +19,16 @@ async def test_connection_motor(db_uri, db_name):
     assert server_info["ok"] == 1.0, "Direct database ping failed"
 
 
-async def test_fetch_kev_data():
+async def test_fetch_kev_data_without_schema():
     kev_data = await fetch_kev_data(DEFAULT_KEV_URL)
+    assert "vulnerabilities" in kev_data, "Expected 'vulnerabilities' in KEV data"
+    assert (
+        len(kev_data["vulnerabilities"]) > 0
+    ), "Expected at least one vulnerability item in KEV data"
+
+
+async def test_fetch_kev_data_with_schema():
+    kev_data = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     assert "vulnerabilities" in kev_data, "Expected 'vulnerabilities' in KEV data"
     assert (
         len(kev_data["vulnerabilities"]) > 0
