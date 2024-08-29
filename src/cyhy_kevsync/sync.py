@@ -1,10 +1,11 @@
 # Standard Python Libraries
 import json
 import logging
-from typing import Optional
+from typing import List, Optional
 import urllib.request
 
 # Third-Party Libraries
+from beanie.operators import NotIn
 from cyhy_db.models import KEVDoc
 from jsonschema import SchemaError, ValidationError, validate
 from rich.progress import track
@@ -72,32 +73,37 @@ async def fetch_kev_data(
     return kev_json
 
 
-async def create_kev_doc(kev_json: dict) -> str:
-    """Add the provided KEV to the database and return its id."""
-    cve_id = kev_json.get("cveID")
-    if not cve_id:
-        raise ValueError("cveID not found in KEV JSON.")
-    known_ransomware = kev_json["knownRansomwareCampaignUse"].lower() == "known"
-    kev_doc = KEVDoc(id=cve_id, known_ransomware=known_ransomware)
-    await kev_doc.save()
-    logger.debug("Created KEV document with id: %s", cve_id)
-    return kev_doc.id
-
-
-async def remove_outdated_kevs() -> None:
-    """Remove KEVs that are no longer in the KEV JSON data."""
-    # TODO implement this
-    pass
-
-
-async def process_kev_json(kev_json: dict) -> None:
+async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
     """Process the KEV JSON data."""
-    for kev in track(
-        kev_json["vulnerabilities"],
+    created_kev_docs: List[str] = list()
+
+    for kev_json in track(
+        kev_json_feed["vulnerabilities"],
         description="Creating KEV docs",
     ):
-        try:
-            await create_kev_doc(kev)
-        except Exception as e:
-            logger.error("Failed to create KEV document: %s", e)
-            continue  # TODO fail hard, or keep going?
+        cve_id = kev_json.get("cveID")
+        if not cve_id:
+            raise ValueError("cveID not found in KEV JSON.")
+        known_ransomware = kev_json["knownRansomwareCampaignUse"].lower() == "known"
+        kev_doc = KEVDoc(id=cve_id, known_ransomware=known_ransomware)
+        await kev_doc.save()
+        logger.debug("Created KEV document with id: %s", cve_id)
+        created_kev_docs += kev_doc
+
+    return created_kev_docs
+
+
+async def remove_outdated_kev_docs(created_kev_docs: List[KEVDoc]) -> List[KEVDoc]:
+    """Remove KEVs that are no longer in the KEV JSON data."""
+    removed_kev_docs: List[KEVDoc] = list()
+
+    # Extract the IDs of the created KEV docs
+    created_kev_ids = {kev.id for kev in created_kev_docs}
+    outdated_kev_docs = await KEVDoc.find(NotIn(KEVDoc.id, created_kev_ids)).to_list()
+
+    for kev in track(outdated_kev_docs, description="Removing outdated KEV docs"):
+        if kev not in created_kev_docs:
+            await kev.delete()
+            removed_kev_docs += kev
+            logger.debug("Removed outdated KEV document with id: %s", kev.id)
+    return removed_kev_docs

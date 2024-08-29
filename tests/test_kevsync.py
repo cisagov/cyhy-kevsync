@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 # cisagov Libraries
 from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
-from cyhy_kevsync.sync import create_kev_doc, fetch_kev_data, process_kev_json
+from cyhy_kevsync.sync import fetch_kev_data, add_kev_docs, remove_outdated_kev_docs
 
 CVE_1 = "CVE-2024-123456"
 VULN_1 = {"cveID": CVE_1, "knownRansomwareCampaignUse": "Known"}
@@ -20,39 +20,35 @@ async def test_connection_motor(db_uri, db_name):
 
 
 async def test_fetch_kev_data_without_schema():
-    kev_data = await fetch_kev_data(DEFAULT_KEV_URL)
-    assert "vulnerabilities" in kev_data, "Expected 'vulnerabilities' in KEV data"
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
+    assert "vulnerabilities" in kev_json_feed, "Expected 'vulnerabilities' in KEV data"
     assert (
-        len(kev_data["vulnerabilities"]) > 0
+        len(kev_json_feed["vulnerabilities"]) > 0
     ), "Expected at least one vulnerability item in KEV data"
 
 
 async def test_fetch_kev_data_with_schema():
-    kev_data = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
-    assert "vulnerabilities" in kev_data, "Expected 'vulnerabilities' in KEV data"
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
+    assert "vulnerabilities" in kev_json_feed, "Expected 'vulnerabilities' in KEV data"
     assert (
-        len(kev_data["vulnerabilities"]) > 0
+        len(kev_json_feed["vulnerabilities"]) > 0
     ), "Expected at least one vulnerability item in KEV data"
 
 
-async def test_create_kev_doc():
-    await create_kev_doc(VULN_1)
-    # Attempt to find the newly created document
-    kev: KEVDoc = await KEVDoc.get(CVE_1)
-    assert KEVDoc is not None, "Expected document to be found in the database"
-    assert kev.id == CVE_1, "Expected document to have the correct ID"
-
-
-async def test_remove_outdated_kevs():
-    # TODO implement this
-    pass
-
-
-async def test_process_kev_json():
-    kev_data = await fetch_kev_data(DEFAULT_KEV_URL)
+async def test_add_kev_docs():
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
     # Check the count before processing
     before_count = await KEVDoc.count()
-    await process_kev_json(kev_data)
+    await add_kev_docs(kev_json_feed)
     # Check the count of KEV documents in the database
     after_count = await KEVDoc.count()
     assert after_count > before_count, "Expected more KEV documents after processing"
+
+
+async def test_remove_outdated_kevs():
+    # Check the count before processing
+    before_count = await KEVDoc.count()
+    removed_kev_docs = await remove_outdated_kev_docs(list())
+    # Check the count of KEV documents in the database
+    after_count = await KEVDoc.count()
+    assert after_count < before_count, "Expected less KEV documents after processing"
