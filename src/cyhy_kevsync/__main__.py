@@ -1,5 +1,5 @@
 """Code to run if this package is used as a Python module."""
 
-from .cyhy_kevsync import main
+from .main import main
 
 main()

@@ -112,5 +112,5 @@ setup(
         ]
     },
     # Conveniently allows one to run the CLI tool as `example`
-    entry_points={"console_scripts": ["cyhy-kevsync = cyhy_kevsync.cyhy_kevsync:main"]},
+    entry_points={"console_scripts": ["cyhy-kevsync = cyhy_kevsync.main:main"]},
 )

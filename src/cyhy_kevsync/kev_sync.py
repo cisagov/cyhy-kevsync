@@ -10,8 +10,6 @@ from cyhy_db.models import KEVDoc
 from jsonschema import SchemaError, ValidationError, validate
 from rich.progress import track
 
-# TODO rename this file to something better
-
 ALLOWED_URL_SCHEMES = ["http", "https"]
 
 logger = logging.getLogger(__name__)
