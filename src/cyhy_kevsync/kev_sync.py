@@ -18,8 +18,23 @@ logger = logging.getLogger(__name__)
 async def fetch_kev_data(
     kev_json_url: str, kev_schema_url: Optional[str] = None
 ) -> dict:
-    """Fetch the KEV data from the given URL."""
+    """
+    Fetch the KEV data from the given URL and optionally validate it against a schema.
 
+    This function retrieves the Known Exploited Vulnerabilities (KEV) JSON data from the specified URL.
+    If a schema URL is provided, it validates the JSON data against the schema to ensure its integrity.
+
+    Args:
+        kev_json_url (str): The URL to fetch the KEV JSON data from.
+        kev_schema_url (Optional[str]): The URL to fetch the KEV JSON schema from for validation (optional).
+
+    Returns:
+        dict: The KEV JSON data.
+
+    Raises:
+        ValueError: If the URL scheme is not allowed.
+        Exception: If the KEV JSON or schema cannot be retrieved or if validation fails.
+    """
     # Create a Request object so we can test the safety of the URL
     key_json_request = urllib.request.Request(kev_json_url)
     if key_json_request.type not in ALLOWED_URL_SCHEMES:
@@ -34,7 +49,7 @@ async def fetch_kev_data(
 
         kev_json = json.loads(response.read().decode("utf-8"))
 
-    # If a schema URL was provided, we will validate the JSON data against it
+    # TODO break this out into a separate function
     if kev_schema_url:
         # Create a Request object so we can test the safety of the URL
         key_schema_request = urllib.request.Request(kev_schema_url)
@@ -53,7 +68,8 @@ async def fetch_kev_data(
                 logger.error("JSON validation error: %s", e.message)
             except SchemaError as e:
                 logger.error("Schema error: %s", e.message)
-
+    else:
+        logger.warning("No schema URL provided. Skipping JSON validation.")
     reported_vuln_count = kev_json.get("count")
     actual_vuln_count = len(kev_json["vulnerabilities"])
     if reported_vuln_count != actual_vuln_count:
@@ -72,7 +88,21 @@ async def fetch_kev_data(
 
 
 async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
-    """Process the KEV JSON data."""
+    """
+    Process the KEV JSON data and create KEV documents.
+
+    This function processes the KEV JSON data, extracts relevant information, and creates KEV documents.
+    Each document is saved to the database and a list of created documents is returned.
+
+    Args:
+        kev_json_feed (dict): The KEV JSON data.
+
+    Returns:
+        List[KEVDoc]: A list of created KEV documents.
+
+    Raises:
+        ValueError: If the cveID is not found in the KEV JSON.
+    """
     created_kev_docs: List[KEVDoc] = list()
 
     for kev_json in track(
@@ -92,7 +122,18 @@ async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
 
 
 async def remove_outdated_kev_docs(created_kev_docs: List[KEVDoc]) -> List[KEVDoc]:
-    """Remove KEVs that are no longer in the KEV JSON data."""
+    """
+    Remove KEV documents that are no longer in the KEV JSON data.
+
+    This function identifies and removes KEV documents that are no longer present in the latest KEV JSON data.
+    It ensures that the database remains up-to-date by deleting outdated documents.
+
+    Args:
+        created_kev_docs (List[KEVDoc]): A list of KEV documents that were recently created.
+
+    Returns:
+        List[KEVDoc]: A list of removed KEV documents.
+    """
     removed_kev_docs: List[KEVDoc] = list()
 
     # Extract the IDs of the created KEV docs
@@ -102,6 +143,6 @@ async def remove_outdated_kev_docs(created_kev_docs: List[KEVDoc]) -> List[KEVDo
     for kev in track(outdated_kev_docs, description="Removing outdated KEV docs"):
         if kev not in created_kev_docs:
             await kev.delete()
-            removed_kev_docs += kev
+            removed_kev_docs.append(kev)
             logger.debug("Removed outdated KEV document with id: %s", kev.id)
     return removed_kev_docs
