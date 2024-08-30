@@ -78,7 +78,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
-    python_requires=">=3.11",
+    python_requires=">=3.12",
     # What does your project relate to?
     keywords="cyhy kev sync",
     packages=find_packages(where="src"),
