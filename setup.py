@@ -75,7 +75,6 @@ setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
@@ -87,8 +86,8 @@ setup(
     package_data={"cyhy_kevsync": ["py.typed"]},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
-        "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@first-commits",
-        "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@first-commits",
+        # "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@first-commits",
+        # "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@first-commits",
         "jsonschema",
         "rich",
         "schema",
