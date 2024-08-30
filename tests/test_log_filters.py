@@ -1,9 +1,12 @@
-import logging
-import pytest
+# Standard Python Libraries
 from io import StringIO
-from cyhy_kevsync.log_filters import (
-    RedactPasswordFilter,
-)
+import logging
+
+# Third-Party Libraries
+import pytest
+
+# cisagov Libraries
+from cyhy_kevsync.log_filters import RedactPasswordFilter
 
 
 @pytest.fixture
