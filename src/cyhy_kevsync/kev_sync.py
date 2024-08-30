@@ -15,9 +15,7 @@ ALLOWED_URL_SCHEMES = ["http", "https"]
 logger = logging.getLogger(__name__)
 
 
-async def fetch_kev_data(
-    kev_json_url: str, kev_schema_url: Optional[str] = None
-) -> dict:
+async def fetch_kev_data(kev_json_url: str) -> dict:
     """
     Fetch the KEV data from the given URL and optionally validate it against a schema.
 
@@ -49,27 +47,45 @@ async def fetch_kev_data(
 
         kev_json = json.loads(response.read().decode("utf-8"))
 
-    # TODO break this out into a separate function
-    if kev_schema_url:
-        # Create a Request object so we can test the safety of the URL
-        key_schema_request = urllib.request.Request(kev_schema_url)
-        if key_schema_request.type not in ALLOWED_URL_SCHEMES:
-            raise ValueError(
-                "Invalid URL scheme in schema URL: %s" % key_json_request.type
-            )
-        with urllib.request.urlopen(kev_schema_url) as response:  # nosec B310
-            if response.status != 200:
-                raise Exception("Failed to retrieve KEV JSON schema.")
-            kev_schema = json.loads(response.read().decode("utf-8"))
-            try:
-                validate(instance=kev_json, schema=kev_schema)
-                logger.info("KEV JSON is valid against the schema.")
-            except ValidationError as e:
-                logger.error("JSON validation error: %s", e.message)
-            except SchemaError as e:
-                logger.error("Schema error: %s", e.message)
-    else:
-        logger.warning("No schema URL provided. Skipping JSON validation.")
+    return kev_json
+
+
+async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
+    """
+    Validate the KEV JSON data against the given schema.
+
+    This function validates the Known Exploited Vulnerabilities (KEV) JSON data against the provided schema.
+    It ensures that the JSON data conforms to the schema and raises an error if validation fails. The function
+    also logs the validation process and any discrepancies found in the vulnerability counts.
+
+    Args:
+        kev_json (dict): The KEV JSON data containing vulnerability information.
+        kev_schema_url (str): The URL to fetch the KEV JSON schema from for validation.
+
+    Raises:
+        ValueError: If the URL scheme is not allowed.
+        Exception: If the KEV JSON schema cannot be retrieved or if validation fails.
+    """
+    # Create a Request object to test the safety of the URL
+    key_schema_request = urllib.request.Request(kev_schema_url)
+    if key_schema_request.type not in ALLOWED_URL_SCHEMES:
+        raise ValueError(
+            "Invalid URL scheme in schema URL: %s" % key_schema_request.type
+        )
+    with urllib.request.urlopen(kev_schema_url) as response:  # nosec B310
+        if response.status != 200:
+            raise Exception("Failed to retrieve KEV JSON schema.")
+        kev_schema = json.loads(response.read().decode("utf-8"))
+        try:
+            validate(instance=kev_json, schema=kev_schema)
+            logger.info("KEV JSON is valid against the schema.")
+        except ValidationError as e:
+            logger.error("JSON validation error: %s", e.message)
+            raise e
+        except SchemaError as e:
+            logger.error("The schema was not valid: %s", e.message)
+            raise e
+
     reported_vuln_count = kev_json.get("count")
     actual_vuln_count = len(kev_json["vulnerabilities"])
     if reported_vuln_count != actual_vuln_count:
@@ -83,8 +99,6 @@ async def fetch_kev_data(
             "Reported vulnerability count matches actual count: %d",
             actual_vuln_count,
         )
-
-    return kev_json
 
 
 async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:

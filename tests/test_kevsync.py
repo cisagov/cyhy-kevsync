@@ -2,11 +2,18 @@
 
 # Third-Party Libraries
 from cyhy_db.models import KEVDoc
+from jsonschema import SchemaError, ValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
+import pytest
 
 # cisagov Libraries
 from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
-from cyhy_kevsync.kev_sync import add_kev_docs, fetch_kev_data, remove_outdated_kev_docs
+from cyhy_kevsync.kev_sync import (
+    add_kev_docs,
+    fetch_kev_data,
+    remove_outdated_kev_docs,
+    validate_kev_data,
+)
 
 CVE_1 = "CVE-2024-123456"
 VULN_1 = {"cveID": CVE_1, "knownRansomwareCampaignUse": "Known"}
@@ -19,24 +26,30 @@ async def test_connection_motor(db_uri, db_name):
     assert server_info["ok"] == 1.0, "Direct database ping failed"
 
 
-async def test_fetch_kev_data_without_schema():
-    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
+async def test_fetch_kev_data():
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     assert "vulnerabilities" in kev_json_feed, "Expected 'vulnerabilities' in KEV data"
     assert (
         len(kev_json_feed["vulnerabilities"]) > 0
     ), "Expected at least one vulnerability item in KEV data"
 
 
-async def test_fetch_kev_data_with_schema():
-    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
-    assert "vulnerabilities" in kev_json_feed, "Expected 'vulnerabilities' in KEV data"
-    assert (
-        len(kev_json_feed["vulnerabilities"]) > 0
-    ), "Expected at least one vulnerability item in KEV data"
+async def test_validate_kev_data_good():
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
+    await validate_kev_data(kev_json_feed, DEFAULT_KEV_SCHEMA_URL)
+
+
+async def test_validate_kev_data_bad():
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
+    # mangle the data
+    kev_json_feed["yourmom"] = kev_json_feed.pop("vulnerabilities")
+
+    with pytest.raises(ValidationError):
+        await validate_kev_data(kev_json_feed, DEFAULT_KEV_SCHEMA_URL)
 
 
 async def test_add_kev_docs():
-    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL)
+    kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     # Check the count before processing
     before_count = await KEVDoc.count()
     created_kev_docs = await add_kev_docs(kev_json_feed)
