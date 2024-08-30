@@ -84,13 +84,20 @@ async def main_async() -> None:
 
     # Initialize the database
     await initialize_db(config.kevsync.db_auth_uri, config.kevsync.db_name)
-    kev_data = await kev_sync.fetch_kev_data(config.kevsync.json_url)
+    kev_json_feed = await kev_sync.fetch_kev_data(config.kevsync.json_url)
     if config.kevsync.schema_url:
-        await kev_sync.validate_kev_data(kev_data, config.kevsync.schema_url)
+        await kev_sync.validate_kev_data(kev_json_feed, config.kevsync.schema_url)
     else:
         logger.warning("No schema URL provided, skipping KEV JSON validation.")
-    created_kev_docs = await kev_sync.add_kev_docs(kev_data)
-    removed_kev_docs = await kev_sync.remove_outdated_kev_docs(created_kev_docs)
+    created_kev_docs, updated_kev_docs, deleted_kev_docs = await kev_sync.sync_kev_docs(
+        kev_json_feed
+    )
+
+    # Log the results
+    logger.info("KEV synchronization complete.")
+    logger.info("Created KEV documents: %d", len(created_kev_docs))
+    logger.info("Updated KEV documents: %d", len(updated_kev_docs))
+    logger.info("Deleted KEV documents: %d", len(deleted_kev_docs))
 
     # Stop logging and clean up
     logging.shutdown()

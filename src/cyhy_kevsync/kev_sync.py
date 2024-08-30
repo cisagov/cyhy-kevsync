@@ -1,11 +1,10 @@
 # Standard Python Libraries
 import json
 import logging
-from typing import List, Optional
+from typing import Dict, List, Tuple
 import urllib.request
 
 # Third-Party Libraries
-from beanie.operators import NotIn
 from cyhy_db.models import KEVDoc
 from jsonschema import SchemaError, ValidationError, validate
 from rich.progress import track
@@ -101,62 +100,59 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
         )
 
 
-async def add_kev_docs(kev_json_feed: dict) -> List[KEVDoc]:
+async def sync_kev_docs(
+    kev_json_feed: dict,
+) -> Tuple[List[KEVDoc], List[KEVDoc], List[KEVDoc]]:
     """
-    Process the KEV JSON data and create KEV documents.
+    Synchronize KEV documents with the latest KEV JSON data.
 
-    This function processes the KEV JSON data, extracts relevant information, and creates KEV documents.
-    Each document is saved to the database and a list of created documents is returned.
+    This function processes the KEV JSON data, updates the database by adding new KEV documents,
+    updating existing ones, and removing outdated ones. It ensures that the database contains the
+    most up-to-date KEV documents.
 
     Args:
-        kev_json_feed (dict): The KEV JSON data.
+        kev_json_feed (dict): The KEV JSON data containing vulnerability information.
 
     Returns:
-        List[KEVDoc]: A list of created KEV documents.
-
-    Raises:
-        ValueError: If the cveID is not found in the KEV JSON.
+        Tuple[List[KEVDoc], List[KEVDoc], List[KEVDoc]]:
+            - List created KEV documents.
+            - List updated KEV documents.
+            - List deleted KEV documents.
     """
-    created_kev_docs: List[KEVDoc] = list()
+    created_kev_docs: List[KEVDoc] = []
+    deleted_kev_docs: List[KEVDoc] = []
+    updated_kev_docs: List[KEVDoc] = []
 
+    # Fetch all existing KEV documents from the database
+    kev_map: Dict[str, KEVDoc] = {
+        kev.id: kev for kev in await KEVDoc.find_all().to_list()
+    }
+
+    # Process each vulnerability in the KEV JSON feed
     for kev_json in track(
         kev_json_feed["vulnerabilities"],
-        description="Creating KEV docs",
+        description="Processing KEV feed",
     ):
         cve_id = kev_json.get("cveID")
-        if not cve_id:
-            raise ValueError("cveID not found in KEV JSON.")
         known_ransomware = kev_json["knownRansomwareCampaignUse"].lower() == "known"
-        kev_doc = KEVDoc(id=cve_id, known_ransomware=known_ransomware)
-        await kev_doc.save()
-        logger.debug("Created KEV document with id: %s", cve_id)
-        created_kev_docs.append(kev_doc)
+        kev_doc = kev_map.pop(cve_id, None)
 
-    return created_kev_docs
+        if kev_doc:  # Update existing KEV doc
+            if kev_doc.known_ransomware != known_ransomware:
+                kev_doc.known_ransomware = known_ransomware
+                await kev_doc.save()
+                logger.info("Updated KEV document with id: %s", cve_id)
+                updated_kev_docs.append(kev_doc)
+        else:  # Create new KEV doc
+            kev_doc = KEVDoc(id=cve_id, known_ransomware=known_ransomware)
+            await kev_doc.save()
+            logger.info("Created KEV document with id: %s", cve_id)
+            created_kev_docs.append(kev_doc)
 
+    # Delete unseen KEV docs
+    for kev_doc in track(kev_map.values(), description="Deleting KEV docs"):
+        await kev_doc.delete()
+        logger.info("Deleted KEV document with id: %s", kev_doc.id)
+        deleted_kev_docs.append(kev_doc)
 
-async def remove_outdated_kev_docs(created_kev_docs: List[KEVDoc]) -> List[KEVDoc]:
-    """
-    Remove KEV documents that are no longer in the KEV JSON data.
-
-    This function identifies and removes KEV documents that are no longer present in the latest KEV JSON data.
-    It ensures that the database remains up-to-date by deleting outdated documents.
-
-    Args:
-        created_kev_docs (List[KEVDoc]): A list of KEV documents that were recently created.
-
-    Returns:
-        List[KEVDoc]: A list of removed KEV documents.
-    """
-    removed_kev_docs: List[KEVDoc] = list()
-
-    # Extract the IDs of the created KEV docs
-    created_kev_ids = {kev.id for kev in created_kev_docs}
-    outdated_kev_docs = await KEVDoc.find(NotIn(KEVDoc.id, created_kev_ids)).to_list()
-
-    for kev in track(outdated_kev_docs, description="Removing outdated KEV docs"):
-        if kev not in created_kev_docs:
-            await kev.delete()
-            removed_kev_docs.append(kev)
-            logger.debug("Removed outdated KEV document with id: %s", kev.id)
-    return removed_kev_docs
+    return created_kev_docs, updated_kev_docs, deleted_kev_docs
