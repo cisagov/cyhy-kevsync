@@ -13,6 +13,8 @@ from pydantic import ValidationError
 from rich.logging import RichHandler
 from rich.traceback import install as traceback_install
 
+from cyhy_kevsync.log_filters import RedactPasswordFilter
+
 from . import kev_sync
 from ._version import __version__
 from .models.config_model import KEVSyncConfig
@@ -44,21 +46,28 @@ async def main_async() -> None:
 
     # Set up root logging
     logging.basicConfig(
-        level="INFO",
+        level=logging.INFO,
         format="%(message)s",
         datefmt="[%X]",
         handlers=[
             RichHandler(rich_tracebacks=True, show_path=args.log_level == "debug")
         ],
     )
+    # Add a filter to redact passwords from URLs to all handlers of the root logger
+    password_redact_filter = RedactPasswordFilter()
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers:
+        handler.addFilter(password_redact_filter)
+
     # Set logging level for our package
     logger = logging.getLogger(__package__)
     logger.setLevel(args.log_level.upper())
     logger = logging.getLogger("cyhy_config")
     logger.setLevel(args.log_level.upper())
 
-    # Set up tracebacks
-    traceback_install(show_locals=True)
+    # Install Rich tracebacks and only show locals when log level is debug as
+    # there may be sensitive data we don't normally want to expose
+    traceback_install(show_locals=args.log_level == "debug")
 
     # Find the configuration file
     try:
