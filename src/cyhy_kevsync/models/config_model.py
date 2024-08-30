@@ -4,13 +4,13 @@
 from typing import Optional
 
 # Third-Party Libraries
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from .. import DEFAULT_KEV_URL
+from .. import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
 
 
 class KEVSync(BaseModel):
-    """Definition of an KEV Sync configuration."""
+    """Definition of a KEV Sync configuration."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -28,6 +28,18 @@ class KEVSync(BaseModel):
         pattern=r"^https?://",
         description="URL to the KEV JSON schema file",
     )
+
+    @model_validator(mode="before")
+    def set_default_schema_url(cls, values):
+        """
+        Set the schema_url to DEFAULT_KEV_SCHEMA_URL if json_url is not supplied.
+
+        This validator checks if the json_url is not provided and sets the schema_url
+        to DEFAULT_KEV_SCHEMA_URL if it is not already set.
+        """
+        if not values.get("json_url"):
+            values["schema_url"] = values.get("schema_url", DEFAULT_KEV_SCHEMA_URL)
+        return values
 
 
 class KEVSyncConfig(BaseModel):
