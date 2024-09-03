@@ -7,7 +7,7 @@ import logging
 import sys
 
 # Third-Party Libraries
-from cyhy_config import find_config, read_config
+from cyhy_config import get_config
 from cyhy_db import initialize_db
 from pydantic import ValidationError
 from rich.logging import RichHandler
@@ -70,16 +70,12 @@ async def main_async() -> None:
     # there may be sensitive data we don't normally want to expose
     traceback_install(show_locals=args.log_level == "debug")
 
-    # Find the configuration file
+    # Get the configuration
     try:
-        config_file = find_config(args.config_file)
-    except FileNotFoundError:
-        sys.exit(1)
-
-    # Read the configuration file
-    try:
-        config = read_config(config_file, KEVSyncConfig)
+        config = get_config(file_path=args.config_file, model=KEVSyncConfig)
     except ValidationError:
+        sys.exit(1)
+    except FileNotFoundError:
         sys.exit(1)
 
     # Initialize the database
