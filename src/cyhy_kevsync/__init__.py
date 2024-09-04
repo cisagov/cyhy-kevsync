@@ -5,10 +5,10 @@
 # package_name.__version__, which is used to get version information about this
 # Python package.
 
+from ._version import __version__  # noqa: F401
+from .main import do_kev_sync
 
 DEFAULT_KEV_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
 DEFAULT_KEV_SCHEMA_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities_schema.json"
 
-from ._version import __version__  # noqa: F401
-
-__all__ = [DEFAULT_KEV_URL]
+__all__ = [DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, "do_kev_sync"]
