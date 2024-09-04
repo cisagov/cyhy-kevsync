@@ -23,6 +23,10 @@ class KEVSync(BaseModel):
         default=DEFAULT_KEV_URL,
         description="URL to the KEV JSON file",
     )
+    log_level: Optional[str] = Field(
+        None,
+        description="Logging level",
+    )
     schema_url: Optional[str] = Field(
         None,
         pattern=r"^https?://",
