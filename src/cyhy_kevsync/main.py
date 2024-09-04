@@ -53,7 +53,7 @@ async def setup_logging(log_level: Optional[str] = None) -> logging.Logger:
 
 
 async def do_kev_sync(
-    config_file: Optional[str], arg_log_level: Optional[str] = None
+    config_file: Optional[str] = None, arg_log_level: Optional[str] = None
 ) -> None:
     """Perform the KEV synchronization."""
     logger = await setup_logging(arg_log_level)
