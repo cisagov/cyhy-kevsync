@@ -27,12 +27,17 @@ async def setup_logging(log_level: Optional[str] = None) -> logging.Logger:
     # MongoDB is too verbose if set to DEBUG, so we only want to show INFO and
     # above at the root logger.  We'll set the log level for our package and the
     # cyhy_config package separately.
+
+    # If a log_level is provided, ensure it is uppercase
+    if log_level:
+        log_level = log_level.upper()
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(message)s",
         datefmt="[%X]",
         # TODO what does show_path do, and is this the same as traceback_install below?
-        handlers=[RichHandler(rich_tracebacks=True, show_path=log_level == "debug")],
+        handlers=[RichHandler(rich_tracebacks=True, show_path=log_level == "DEBUG")],
     )
     # Add a filter to redact passwords from URLs to all handlers of the root logger
     password_redact_filter = RedactPasswordFilter()
@@ -42,13 +47,13 @@ async def setup_logging(log_level: Optional[str] = None) -> logging.Logger:
 
     # Install Rich tracebacks and only show locals when log level is debug as
     # there may be sensitive data we don't normally want to expose
-    traceback_install(show_locals=log_level == "debug")
+    traceback_install(show_locals=log_level == "DEBUG")
 
     package_logger = logging.getLogger(__package__)
     if log_level:
-        package_logger.setLevel(log_level.upper())
+        package_logger.setLevel(log_level)
         config_logger = logging.getLogger("cyhy_config")
-        config_logger.setLevel(log_level.upper())
+        config_logger.setLevel(log_level)
     return package_logger
 
 
