@@ -88,9 +88,9 @@ setup(
     install_requires=[
         "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@first-commits",
         "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@first-commits",
+        "cyhy-logging @ git+https://github.com/cisagov/cyhy-logging.git@first-commits",
         "jsonschema",
         "rich",
-        "schema",
         "setuptools >= 24.2.0",
     ],
     extras_require={

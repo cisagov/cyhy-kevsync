@@ -1,3 +1,5 @@
+"""This module provides functions for fetching, validating, and synchronizing Known Exploited Vulnerabilities (KEV) data."""
+
 # Standard Python Libraries
 import json
 import logging
@@ -6,12 +8,13 @@ import urllib.request
 
 # Third-Party Libraries
 from cyhy_db.models import KEVDoc
+from cyhy_logging import CYHY_ROOT_LOGGER
 from jsonschema import SchemaError, ValidationError, validate
 from rich.progress import track
 
 ALLOWED_URL_SCHEMES = ["http", "https"]
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(f"{CYHY_ROOT_LOGGER}.{__name__}")
 
 
 async def fetch_kev_data(kev_json_url: str) -> dict:

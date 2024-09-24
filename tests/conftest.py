@@ -15,7 +15,6 @@ import docker
 from motor.core import AgnosticClient
 import pytest
 from rich.logging import RichHandler
-from rich.traceback import install as traceback_install
 
 MONGO_INITDB_ROOT_USERNAME = os.environ.get("MONGO_INITDB_ROOT_USERNAME", "mongoadmin")
 MONGO_INITDB_ROOT_PASSWORD = os.environ.get("MONGO_INITDB_ROOT_PASSWORD", "secret")
@@ -93,6 +92,7 @@ def mongodb_container(docker_client, mongo_image_tag):
 
 @pytest.fixture(autouse=True, scope="session")
 def mongo_express_container(docker_client, request):
+    """Fixture for the Mongo Express test container."""
     if not request.config.getoption("--mongo-express"):
         yield None
         return
