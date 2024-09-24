@@ -1,5 +1,8 @@
 """Test database connection."""
 
+# Standard Python Libraries
+import os
+
 # Third-Party Libraries
 from cyhy_db.models import KEVDoc
 from jsonschema import ValidationError
@@ -7,14 +10,29 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import pytest
 
 # cisagov Libraries
-from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL
+from cyhy_kevsync import DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL, __version__
 from cyhy_kevsync.kev_sync import fetch_kev_data, sync_kev_docs, validate_kev_data
 
 CVE_1 = "CVE-2024-123456"
 VULN_1 = {"cveID": CVE_1, "knownRansomwareCampaignUse": "Known"}
 
+# define sources of version strings
+RELEASE_TAG = os.getenv("RELEASE_TAG")
+PROJECT_VERSION = __version__
+
+
+@pytest.mark.skipif(
+    RELEASE_TAG in [None, ""], reason="this is not a release (RELEASE_TAG not set)"
+)
+def test_release_version():
+    """Verify that release tag version agrees with the module version."""
+    assert (
+        RELEASE_TAG == f"v{PROJECT_VERSION}"
+    ), "RELEASE_TAG does not match the project version"
+
 
 async def test_connection_motor(db_uri, db_name):
+    """Test the database connection."""
     client = AsyncIOMotorClient(db_uri)
     db = client[db_name]
     server_info = await db.command("ping")
@@ -22,6 +40,7 @@ async def test_connection_motor(db_uri, db_name):
 
 
 async def test_fetch_kev_data():
+    """Test fetching KEV data."""
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     assert "vulnerabilities" in kev_json_feed, "Expected 'vulnerabilities' in KEV data"
     assert (
@@ -30,11 +49,13 @@ async def test_fetch_kev_data():
 
 
 async def test_validate_kev_data_good():
+    """Test validating KEV data."""
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     await validate_kev_data(kev_json_feed, DEFAULT_KEV_SCHEMA_URL)
 
 
 async def test_validate_kev_data_bad():
+    """Test validating bad KEV data."""
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     # mangle the data
     kev_json_feed["yourmom"] = kev_json_feed.pop("vulnerabilities")
@@ -44,6 +65,7 @@ async def test_validate_kev_data_bad():
 
 
 async def test_sync_kev_docs():
+    """Test synchronizing KEV documents."""
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
     # Trim the data to 20 items
     kev_json_feed["vulnerabilities"] = kev_json_feed["vulnerabilities"][:40]
