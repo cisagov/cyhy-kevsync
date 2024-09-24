@@ -10,58 +10,20 @@ from typing import Optional
 # Third-Party Libraries
 from cyhy_config import get_config
 from cyhy_db import initialize_db
+from cyhy_logging import CYHY_ROOT_LOGGER, setup_logging
 from pydantic import ValidationError
-from rich.logging import RichHandler
-from rich.traceback import install as traceback_install
-
-# cisagov Libraries
-from cyhy_kevsync.log_filters import RedactPasswordFilter
 
 from . import kev_sync
 from ._version import __version__
 from .models.config_model import KEVSyncConfig
 
 
-async def setup_logging(log_level: Optional[str] = None) -> logging.Logger:
-    """Set up all logging."""
-    # MongoDB is too verbose if set to DEBUG, so we only want to show INFO and
-    # above at the root logger.  We'll set the log level for our package and the
-    # cyhy_config package separately.
-
-    # If a log_level is provided, ensure it is uppercase
-    if log_level:
-        log_level = log_level.upper()
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(message)s",
-        datefmt="[%X]",
-        # TODO what does show_path do, and is this the same as traceback_install below?
-        handlers=[RichHandler(rich_tracebacks=True, show_path=log_level == "DEBUG")],
-    )
-    # Add a filter to redact passwords from URLs to all handlers of the root logger
-    password_redact_filter = RedactPasswordFilter()
-    root_logger = logging.getLogger()
-    for handler in root_logger.handlers:
-        handler.addFilter(password_redact_filter)
-
-    # Install Rich tracebacks and only show locals when log level is debug as
-    # there may be sensitive data we don't normally want to expose
-    traceback_install(show_locals=log_level == "DEBUG")
-
-    package_logger = logging.getLogger(__package__)
-    if log_level:
-        package_logger.setLevel(log_level)
-        config_logger = logging.getLogger("cyhy_config")
-        config_logger.setLevel(log_level)
-    return package_logger
-
-
 async def do_kev_sync(
     config_file: Optional[str] = None, arg_log_level: Optional[str] = None
 ) -> None:
     """Perform the KEV synchronization."""
-    logger = await setup_logging(arg_log_level)
+    logger = logging.getLogger(f"{CYHY_ROOT_LOGGER}.{__name__}")
+    setup_logging(arg_log_level)
 
     # Get the configuration
     try:
@@ -73,7 +35,7 @@ async def do_kev_sync(
 
     if not arg_log_level and config.kevsync.log_level:
         # Update log levels from config if they were not set by an argument
-        logger = await setup_logging(config.kevsync.log_level)
+        setup_logging(config.kevsync.log_level)
 
     # Initialize the database
     await initialize_db(config.kevsync.db_auth_uri, config.kevsync.db_name)
