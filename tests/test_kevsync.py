@@ -67,7 +67,7 @@ async def test_validate_kev_data_bad():
 async def test_sync_kev_docs():
     """Test synchronizing KEV documents."""
     kev_json_feed = await fetch_kev_data(DEFAULT_KEV_URL)
-    # Trim the data to 20 items
+    # Trim the data to 40 items
     kev_json_feed["vulnerabilities"] = kev_json_feed["vulnerabilities"][:40]
 
     # Check the count before processing

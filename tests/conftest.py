@@ -91,7 +91,7 @@ def mongodb_container(docker_client, mongo_image_tag):
 
 
 @pytest.fixture(autouse=True, scope="session")
-def mongo_express_container(docker_client, request):
+def mongo_express_container(docker_client, db_uri, request):
     """Fixture for the Mongo Express test container."""
     if not request.config.getoption("--mongo-express"):
         yield None
@@ -114,7 +114,10 @@ def mongo_express_container(docker_client, request):
     def fin():
         if request.config.getoption("--mongo-express"):
             print(
-                f"\n\nMongo Express is running at http://admin:pass@localhost:{MONGO_EXPRESS_PORT}"
+                f'\n\nMongoDB is accessible at {db_uri} with database named "{DATABASE_NAME}"'
+            )
+            print(
+                f"Mongo Express is accessible at http://admin:pass@localhost:{MONGO_EXPRESS_PORT}\n"
             )
             input("Press Enter to stop Mongo Express and MongoDB containers...")
         mongo_express_container.stop()
