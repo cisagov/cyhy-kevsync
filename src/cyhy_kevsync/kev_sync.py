@@ -128,7 +128,7 @@ async def sync_kev_docs(
 
     # Fetch all existing KEV documents from the database
     kev_map: Dict[str, KEVDoc] = {
-        kev.id: kev for kev in await KEVDoc.find_all().to_list()
+        str(kev.id): kev for kev in await KEVDoc.find_all().to_list()
     }
 
     # Process each vulnerability in the KEV JSON feed

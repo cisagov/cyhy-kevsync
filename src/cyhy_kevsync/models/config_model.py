@@ -18,7 +18,7 @@ class KEVSync(BaseModel):
         pattern=r"^mongodb://", description="MongoDB connection URI"
     )
     db_name: str = Field(description="MongoDB database name")
-    json_url: Optional[str] = Field(
+    json_url: str = Field(
         pattern=r"^https?://",
         default=DEFAULT_KEV_URL,
         description="URL to the KEV JSON file",
