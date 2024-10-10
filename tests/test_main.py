@@ -56,7 +56,7 @@ async def test_main_async_with_args():
         mock_logging_shutdown.assert_called_once()
 
 
-async def test_do_kev_sync_valid_config(db_uri, db_name):
+async def test_do_kev_sync_valid_config(capfd, db_uri, db_name):
     """Test the do_kev_sync function with a valid configuration."""
     valid_config = KEVSyncConfig(
         kevsync=KEVSync(
@@ -69,10 +69,12 @@ async def test_do_kev_sync_valid_config(db_uri, db_name):
     )
     with patch("cyhy_kevsync.main.get_config", return_value=valid_config):
         await do_kev_sync(config_file=None, arg_log_level=None)
-    # TODO: Add assertions
+    kev_sync_output = capfd.readouterr().out
+    assert "Processing KEV feed" in kev_sync_output
+    assert "KEV synchronization complete" in kev_sync_output
 
 
-async def test_do_kev_sync_invalid_config():
+async def test_do_kev_sync_invalid_config(capfd):
     """Test the do_kev_sync function with an invalid configuration file."""
     invalid_config = b'foo = "bar"'
     with patch("pathlib.Path.exists", return_value=True):
@@ -80,11 +82,13 @@ async def test_do_kev_sync_invalid_config():
             with patch("builtins.open", mock_open(read_data=invalid_config)):
                 with pytest.raises(SystemExit) as exc_info:
                     await do_kev_sync(config_file="mock_file", arg_log_level="debug")
+                assert "validation error for KEVSyncConfig" in capfd.readouterr().out
                 assert exc_info.value.code == 1, "Expected exit code 1"
 
 
-async def test_do_kev_sync_file_not_found():
+async def test_do_kev_sync_file_not_found(capfd):
     """Test the do_kev_sync function with a missing configuration file."""
     with pytest.raises(SystemExit) as exc_info:
         await do_kev_sync(config_file="non-existent_file", arg_log_level="debug")
+    assert "No CyHy configuration file found" in capfd.readouterr().out
     assert exc_info.value.code == 1, "Expected exit code 1"
