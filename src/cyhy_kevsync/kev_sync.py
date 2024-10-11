@@ -36,9 +36,9 @@ async def fetch_kev_data(kev_json_url: str) -> dict:
         Exception: If the KEV JSON or schema cannot be retrieved or if validation fails.
     """
     # Create a Request object so we can test the safety of the URL
-    key_json_request = urllib.request.Request(kev_json_url)
-    if key_json_request.type not in ALLOWED_URL_SCHEMES:
-        raise ValueError("Invalid URL scheme in json URL: %s" % key_json_request.type)
+    kev_json_request = urllib.request.Request(kev_json_url)
+    if kev_json_request.type not in ALLOWED_URL_SCHEMES:
+        raise ValueError("Invalid URL scheme in json URL: %s" % kev_json_request.type)
 
     # Below we disable the bandit blacklist for the urllib.request.urlopen() function
     # since we are checking the URL scheme before using.
@@ -69,10 +69,10 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
         Exception: If the KEV JSON schema cannot be retrieved or if validation fails.
     """
     # Create a Request object to test the safety of the URL
-    key_schema_request = urllib.request.Request(kev_schema_url)
-    if key_schema_request.type not in ALLOWED_URL_SCHEMES:
+    kev_schema_request = urllib.request.Request(kev_schema_url)
+    if kev_schema_request.type not in ALLOWED_URL_SCHEMES:
         raise ValueError(
-            "Invalid URL scheme in schema URL: %s" % key_schema_request.type
+            "Invalid URL scheme in schema URL: %s" % kev_schema_request.type
         )
     with urllib.request.urlopen(kev_schema_url) as response:  # nosec B310
         if response.status != 200:
