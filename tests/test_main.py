@@ -2,10 +2,12 @@
 
 # Standard Python Libraries
 import argparse
+import logging
 import sys
 from unittest.mock import AsyncMock, mock_open, patch
 
 # Third-Party Libraries
+from cyhy_logging import CYHY_ROOT_LOGGER
 import pytest
 
 # cisagov Libraries
@@ -72,6 +74,40 @@ async def test_do_kev_sync_valid_config(capfd, db_uri, db_name):
     kev_sync_output = capfd.readouterr().out
     assert "Processing KEV feed" in kev_sync_output
     assert "KEV synchronization complete" in kev_sync_output
+
+
+async def test_do_kev_sync_setup_logging(db_uri, db_name):
+    """Test that do_kev_sync ignores the log_level in the config if it's set via arg_log_level."""
+    valid_config = KEVSyncConfig(
+        kevsync=KEVSync(
+            db_auth_uri=db_uri,
+            db_name=db_name,
+            json_url=DEFAULT_KEV_URL,
+            log_level="info",
+            schema_url=DEFAULT_KEV_SCHEMA_URL,
+        )
+    )
+    with patch("cyhy_kevsync.main.get_config", return_value=valid_config):
+        await do_kev_sync(config_file=None, arg_log_level="critical")
+    assert (
+        logging.getLogger(f"{CYHY_ROOT_LOGGER}.main").getEffectiveLevel()
+        == logging.CRITICAL
+    )
+
+
+async def test_do_kev_sync_no_schema(capfd, db_uri, db_name):
+    """Test that do_kev_sync skips schema validation if no schema is provided in the config."""
+    valid_config = KEVSyncConfig(
+        kevsync=KEVSync(
+            db_auth_uri=db_uri,
+            db_name=db_name,
+            json_url=DEFAULT_KEV_URL,
+        )
+    )
+    with patch("cyhy_kevsync.main.get_config", return_value=valid_config):
+        await do_kev_sync(config_file=None, arg_log_level="warning")
+    kev_sync_output = capfd.readouterr().out
+    assert "No schema URL provided, skipping KEV JSON validation" in kev_sync_output
 
 
 async def test_do_kev_sync_invalid_config(capfd):
