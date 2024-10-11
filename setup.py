@@ -96,7 +96,7 @@ setup(
     extras_require={
         "test": [
             "coverage",
-            "coveralls ",
+            "coveralls",
             "docker",
             "pre-commit",
             "pytest-asyncio",
