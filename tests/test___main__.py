@@ -15,4 +15,4 @@ def test_main_called():
         with pytest.raises(SystemExit) as exc_info:
             with patch("cyhy_kevsync.__main__.main") as mock_main:
                 mock_main.assert_called_once()
-        assert exc_info.value.code == 0
+        assert exc_info.value.code == 0, "Expected exit code 0"

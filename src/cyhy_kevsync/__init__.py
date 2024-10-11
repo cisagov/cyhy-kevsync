@@ -13,4 +13,4 @@ DEFAULT_KEV_SCHEMA_URL = "https://www.cisa.gov/sites/default/files/feeds/known_e
 from ._version import __version__  # noqa: F401, E402
 from .main import do_kev_sync  # noqa: E402
 
-__all__ = [DEFAULT_KEV_URL, DEFAULT_KEV_SCHEMA_URL, "do_kev_sync"]
+__all__ = ["do_kev_sync", DEFAULT_KEV_SCHEMA_URL, DEFAULT_KEV_URL]

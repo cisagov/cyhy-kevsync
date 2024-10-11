@@ -1,6 +1,5 @@
 """Tests for the KEVSync configuration model."""
 
-# Third Party Libraries
 # Third-Party Libraries
 from pydantic import ValidationError
 import pytest

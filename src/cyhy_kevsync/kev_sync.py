@@ -19,33 +19,39 @@ logger = logging.getLogger(f"{CYHY_ROOT_LOGGER}.{__name__}")
 
 async def fetch_kev_data(kev_json_url: str) -> dict:
     """
-    Fetch the KEV data from the given URL and optionally validate it against a schema.
+    Fetch the KEV data from the given URL.
 
     This function retrieves the Known Exploited Vulnerabilities (KEV) JSON data from the specified URL.
-    If a schema URL is provided, it validates the JSON data against the schema to ensure its integrity.
 
     Args:
         kev_json_url (str): The URL to fetch the KEV JSON data from.
-        kev_schema_url (Optional[str]): The URL to fetch the KEV JSON schema from for validation (optional).
 
     Returns:
         dict: The KEV JSON data.
 
     Raises:
+        urllib.error.HTTPError: If the KEV JSON or schema cannot be retrieved or if validation fails.
         ValueError: If the URL scheme is not allowed.
-        Exception: If the KEV JSON or schema cannot be retrieved or if validation fails.
     """
     # Create a Request object so we can test the safety of the URL
     kev_json_request = urllib.request.Request(kev_json_url)
     if kev_json_request.type not in ALLOWED_URL_SCHEMES:
-        raise ValueError("Invalid URL scheme in json URL: %s" % kev_json_request.type)
+        raise ValueError(
+            "Invalid URL scheme in KEV JSON URL: %s" % kev_json_request.type
+        )
 
     # Below we disable the bandit blacklist for the urllib.request.urlopen() function
     # since we are checking the URL scheme before using.
 
     with urllib.request.urlopen(kev_json_url) as response:  # nosec B310
         if response.status != 200:
-            raise Exception("Failed to retrieve KEV JSON.")
+            raise urllib.error.HTTPError(
+                kev_json_url,
+                response.status,
+                "Failed to retrieve KEV JSON.",
+                response.headers,
+                None,
+            )
 
         kev_json = json.loads(response.read().decode("utf-8"))
 
@@ -65,27 +71,42 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
         kev_schema_url (str): The URL to fetch the KEV JSON schema from for validation.
 
     Raises:
+        json.JSONDecodeError: If the response content is not valid JSON.
+        jsonschema.exceptions.SchemaError: If the KEV JSON schema itself is not valid.
+        jsonschema.exceptions.ValidationError: If the KEV JSON data does not conform to the schema.
+        urllib.error.URLError: If there is an issue with retrieving the KEV schema (e.g., HTTP error).
         ValueError: If the URL scheme is not allowed.
-        Exception: If the KEV JSON schema cannot be retrieved or if validation fails.
     """
     # Create a Request object to test the safety of the URL
     kev_schema_request = urllib.request.Request(kev_schema_url)
     if kev_schema_request.type not in ALLOWED_URL_SCHEMES:
         raise ValueError(
-            "Invalid URL scheme in schema URL: %s" % kev_schema_request.type
+            "Invalid URL scheme in KEV schema URL: %s" % kev_schema_request.type
         )
     with urllib.request.urlopen(kev_schema_url) as response:  # nosec B310
         if response.status != 200:
-            raise Exception("Failed to retrieve KEV JSON schema.")
-        kev_schema = json.loads(response.read().decode("utf-8"))
+            raise urllib.error.HTTPError(
+                kev_schema_url,
+                response.status,
+                "Failed to retrieve KEV JSON schema.",
+                response.headers,
+                None,
+            )
+
+        try:
+            kev_schema = json.loads(response.read().decode("utf-8"))
+        except json.JSONDecodeError as e:
+            logger.error("Failed to decode KEV JSON schema: %s", e.msg)
+            raise e
+
         try:
             validate(instance=kev_json, schema=kev_schema)
             logger.info("KEV JSON is valid against the schema.")
         except ValidationError as e:
-            logger.error("JSON validation error: %s", e.message)
+            logger.error("KEV JSON data does not conform to the schema: %s", e.message)
             raise e
         except SchemaError as e:
-            logger.error("The schema was not valid: %s", e.message)
+            logger.error("The JSON schema was not valid: %s", e.message)
             raise e
 
     reported_vuln_count = kev_json.get("count")
