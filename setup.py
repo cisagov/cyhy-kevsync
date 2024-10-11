@@ -104,6 +104,6 @@ setup(
             "pytest",
         ]
     },
-    # Conveniently allows one to run the CLI tool as `example`
+    # Conveniently allows one to run the CLI tool as `cyhy-kevsync`
     entry_points={"console_scripts": ["cyhy-kevsync = cyhy_kevsync.main:main"]},
 )
