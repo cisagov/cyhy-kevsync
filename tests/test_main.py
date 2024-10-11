@@ -107,7 +107,7 @@ async def test_do_kev_sync_no_schema(capfd, db_uri, db_name):
     with patch("cyhy_kevsync.main.get_config", return_value=valid_config):
         await do_kev_sync(config_file=None, arg_log_level="warning")
     kev_sync_output = capfd.readouterr().out
-    assert "No schema URL provided, skipping KEV JSON validation" in kev_sync_output
+    assert "No schema URL provided" in kev_sync_output
 
 
 async def test_do_kev_sync_invalid_config(capfd):

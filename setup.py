@@ -86,24 +86,18 @@ setup(
     package_data={"cyhy_kevsync": ["py.typed"]},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
-        "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git",
+        "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@v1",
         "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@first-commits",
         "cyhy-logging @ git+https://github.com/cisagov/cyhy-logging.git@first-commits",
         "jsonschema",
         "rich",
-        "setuptools >= 24.2.0",
+        "setuptools",
     ],
     extras_require={
         "test": [
             "coverage",
-            # coveralls 1.11.0 added a service number for calls from
-            # GitHub Actions. This caused a regression which resulted in a 422
-            # response from the coveralls API with the message:
-            # Unprocessable Entity for url: https://coveralls.io/api/v1/jobs
-            # 1.11.1 fixed this issue, but to ensure expected behavior we'll pin
-            # to never grab the regression version.
-            "coveralls != 1.11.0",
-            "docker == 7.1.0",
+            "coveralls ",
+            "docker",
             "pre-commit",
             "pytest-asyncio",
             "pytest-cov",
