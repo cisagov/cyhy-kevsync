@@ -2,7 +2,7 @@
 # https://coverage.readthedocs.io/en/latest/config.html
 
 [run]
-source = src/example
+source = src/cyhy_kevsync
 omit =
 branch = true
 
