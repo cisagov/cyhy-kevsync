@@ -87,7 +87,7 @@ setup(
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
     install_requires=[
         "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@v1",
-        "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@first-commits",
+        "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@v1",
         "cyhy-logging @ git+https://github.com/cisagov/cyhy-logging.git@first-commits",
         "jsonschema",
         "rich",
