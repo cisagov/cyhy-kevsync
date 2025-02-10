@@ -103,7 +103,7 @@ setup(
         # field of the mypy pre-commit hook to avoid discrepancies in type
         # checking between environments.
         "dev": [
-            "types-docopt",
+            "types-jsonschema",
             "types-setuptools",
         ],
         "test": [
