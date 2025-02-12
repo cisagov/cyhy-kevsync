@@ -76,6 +76,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: Implementation :: CPython",
     ],
     python_requires=">=3.12",
@@ -85,6 +86,7 @@ setup(
     package_dir={"": "src"},
     package_data={"cyhy_kevsync": ["py.typed"]},
     py_modules=[splitext(basename(path))[0] for path in glob("src/*.py")],
+    include_package_data=True,
     install_requires=[
         "cyhy-config @ git+https://github.com/cisagov/cyhy-config.git@v1",
         "cyhy-db @ git+https://github.com/cisagov/cyhy-db.git@v1",
@@ -94,6 +96,16 @@ setup(
         "setuptools",
     ],
     extras_require={
+        # IMPORTANT: Keep type hinting-related dependencies of the dev section
+        # in sync with the mypy pre-commit hook configuration (see
+        # .pre-commit-config.yaml). Any changes to type hinting-related
+        # dependencies here should be reflected in the additional_dependencies
+        # field of the mypy pre-commit hook to avoid discrepancies in type
+        # checking between environments.
+        "dev": [
+            "types-jsonschema",
+            "types-setuptools",
+        ],
         "test": [
             "coverage",
             "coveralls",
@@ -102,7 +114,7 @@ setup(
             "pytest-asyncio",
             "pytest-cov",
             "pytest",
-        ]
+        ],
     },
     # Conveniently allows one to run the CLI tool as `cyhy-kevsync`
     entry_points={"console_scripts": ["cyhy-kevsync = cyhy_kevsync.main:main"]},
