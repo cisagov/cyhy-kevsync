@@ -9,7 +9,7 @@ import urllib.error
 # Third-Party Libraries
 from cyhy_db.models import KEVDoc
 import jsonschema
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient
 import pytest
 
 # cisagov Libraries
@@ -76,7 +76,7 @@ def test_release_version():
 
 async def test_connection_motor(db_uri, db_name):
     """Test the database connection."""
-    client = AsyncIOMotorClient(db_uri)
+    client = AsyncMongoClient(db_uri)
     db = client[db_name]
     server_info = await db.command("ping")
     assert server_info["ok"] == 1.0, "Direct database ping failed"
