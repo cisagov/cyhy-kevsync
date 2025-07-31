@@ -214,10 +214,14 @@ jobs:
         # We test on all of the latest platforms available to use with GitHub-
         # hosted runners for public repositories.
         platform:
-          - macos-latest
+          # TODO: Re-enable support for macOS when that becomes
+          # possible.  See #9 for more details.
+          # - macos-latest
           - ubuntu-24.04-arm
           - ubuntu-latest
-          - windows-latest
+          # TODO: Re-enable support for Windows when that becomes
+          # possible.  See #9 for more details.
+          # - windows-latest
         python-version:
           - "3.12"
           - "3.13"
@@ -420,10 +424,14 @@ jobs:
         # We test on all of the latest platforms available to use with GitHub-
         # hosted runners for public repositories.
         platform:
-          - macos-latest
+          # TODO: Re-enable support for macOS when that becomes
+          # possible.  See #9 for more details.
+          # - macos-latest
           - ubuntu-24.04-arm
           - ubuntu-latest
-          - windows-latest
+          # TODO: Re-enable support for Windows when that becomes
+          # possible.  See #9 for more details.
+          # - windows-latest
         python-version:
           - "3.12"
           - "3.13"
