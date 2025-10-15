@@ -3,7 +3,6 @@
 [![GitHub Build Status](https://github.com/cisagov/cyhy-kevsync/workflows/build/badge.svg)](https://github.com/cisagov/cyhy-kevsync/actions)
 [![CodeQL](https://github.com/cisagov/cyhy-kevsync/workflows/CodeQL/badge.svg)](https://github.com/cisagov/cyhy-kevsync/actions/workflows/codeql-analysis.yml)
 [![Coverage Status](https://coveralls.io/repos/github/cisagov/cyhy-kevsync/badge.svg?branch=develop)](https://coveralls.io/github/cisagov/cyhy-kevsync?branch=develop)
-[![Known Vulnerabilities](https://snyk.io/test/github/cisagov/cyhy-kevsync/develop/badge.svg)](https://snyk.io/test/github/cisagov/cyhy-kevsync)
 
 `cyhy-kevsync` is Python library that can retrieve a JSON file containing Known
 Exploited Vulnerabilities (such as the [JSON
