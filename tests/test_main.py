@@ -23,14 +23,15 @@ from cyhy_kevsync.models.config_model import (
 async def test_main_async_no_args():
     """Test the main_async function with no arguments."""
     test_args = ["program"]
-    with patch.object(sys, "argv", test_args), patch(
-        "cyhy_kevsync.main.do_kev_sync", new=AsyncMock()
-    ) as mock_do_kev_sync, patch(
-        "argparse.ArgumentParser.parse_args",
-        return_value=argparse.Namespace(config_file=None, log_level="info"),
-    ), patch(
-        "logging.shutdown"
-    ) as mock_logging_shutdown:
+    with (
+        patch.object(sys, "argv", test_args),
+        patch("cyhy_kevsync.main.do_kev_sync", new=AsyncMock()) as mock_do_kev_sync,
+        patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(config_file=None, log_level="info"),
+        ),
+        patch("logging.shutdown") as mock_logging_shutdown,
+    ):
 
         await main_async()
 
@@ -41,16 +42,17 @@ async def test_main_async_no_args():
 async def test_main_async_with_args():
     """Test the main_async function with arguments."""
     test_args = ["program", "--config-file", "test_config.yaml", "--log-level", "debug"]
-    with patch.object(sys, "argv", test_args), patch(
-        "cyhy_kevsync.main.do_kev_sync", new=AsyncMock()
-    ) as mock_do_kev_sync, patch(
-        "argparse.ArgumentParser.parse_args",
-        return_value=argparse.Namespace(
-            config_file="test_config.yaml", log_level="debug"
+    with (
+        patch.object(sys, "argv", test_args),
+        patch("cyhy_kevsync.main.do_kev_sync", new=AsyncMock()) as mock_do_kev_sync,
+        patch(
+            "argparse.ArgumentParser.parse_args",
+            return_value=argparse.Namespace(
+                config_file="test_config.yaml", log_level="debug"
+            ),
         ),
-    ), patch(
-        "logging.shutdown"
-    ) as mock_logging_shutdown:
+        patch("logging.shutdown") as mock_logging_shutdown,
+    ):
 
         await main_async()
 
