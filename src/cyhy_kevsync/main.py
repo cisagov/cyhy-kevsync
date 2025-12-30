@@ -5,7 +5,6 @@ import argparse
 import asyncio
 import logging
 import sys
-from typing import Optional
 
 # Third-Party Libraries
 from cyhy_config import get_config
@@ -19,7 +18,7 @@ from .models.config_model import KEVSyncConfig
 
 
 async def do_kev_sync(
-    config_file: Optional[str] = None, arg_log_level: Optional[str] = None
+    config_file: str | None = None, arg_log_level: str | None = None
 ) -> None:
     """Perform the KEV synchronization."""
     logger = logging.getLogger(f"{CYHY_ROOT_LOGGER}.{__name__}")

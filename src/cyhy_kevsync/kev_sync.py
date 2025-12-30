@@ -3,7 +3,6 @@
 # Standard Python Libraries
 import json
 import logging
-from typing import Dict, List, Tuple
 import urllib.request
 
 # Third-Party Libraries
@@ -126,7 +125,7 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
 
 async def sync_kev_docs(
     kev_json_feed: dict,
-) -> Tuple[List[KEVDoc], List[KEVDoc], List[KEVDoc]]:
+) -> tuple[list[KEVDoc], list[KEVDoc], list[KEVDoc]]:
     """
     Synchronize KEV documents with the latest KEV JSON data.
 
@@ -143,12 +142,12 @@ async def sync_kev_docs(
             - List updated KEV documents.
             - List deleted KEV documents.
     """
-    created_kev_docs: List[KEVDoc] = []
-    deleted_kev_docs: List[KEVDoc] = []
-    updated_kev_docs: List[KEVDoc] = []
+    created_kev_docs: list[KEVDoc] = []
+    deleted_kev_docs: list[KEVDoc] = []
+    updated_kev_docs: list[KEVDoc] = []
 
     # Fetch all existing KEV documents from the database
-    kev_map: Dict[str, KEVDoc] = {
+    kev_map: dict[str, KEVDoc] = {
         str(kev.id): kev for kev in await KEVDoc.find_all().to_list()
     }
 

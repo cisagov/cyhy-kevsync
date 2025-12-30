@@ -1,8 +1,5 @@
 """Model definitions for the configuration."""
 
-# Standard Python Libraries
-from typing import Optional
-
 # Third-Party Libraries
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -23,11 +20,11 @@ class KEVSync(BaseModel):
         default=DEFAULT_KEV_URL,
         description="URL to the KEV JSON file",
     )
-    log_level: Optional[str] = Field(
+    log_level: str | None = Field(
         None,
         description="Logging level",
     )
-    schema_url: Optional[str] = Field(
+    schema_url: str | None = Field(
         None,
         pattern=r"^https?://",
         description="URL to the KEV JSON schema file",
