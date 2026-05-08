@@ -76,9 +76,10 @@ def mongodb_container(docker_client, mongo_image_tag):
             break
         time.sleep(1)
     else:
-        assert (
-            False
-        ), f"Container status did not transition to 'healthy' within {timeout} seconds."
+        raise AssertionError(
+            "Container status did not transition to "
+            f"'healthy' within {timeout} seconds."
+        )
 
     yield container
     container.stop()
