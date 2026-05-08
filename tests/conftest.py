@@ -65,9 +65,9 @@ def mongodb_container(docker_client, mongo_image_tag):
             "start_period": 3000000000,  # ns -> 3 seconds
         },
     )
-    TIMEOUT = 180
+    timeout = 180
     # Wait for container to be healthy
-    for _ in range(TIMEOUT):
+    for _ in range(timeout):
         # Verify the container is still running
         container.reload()
         assert container.status == "running", "The container unexpectedly exited."
@@ -78,7 +78,7 @@ def mongodb_container(docker_client, mongo_image_tag):
     else:
         assert (
             False
-        ), f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
+        ), f"Container status did not transition to 'healthy' within {timeout} seconds."
 
     yield container
     container.stop()
