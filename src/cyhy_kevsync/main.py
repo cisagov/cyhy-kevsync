@@ -57,7 +57,9 @@ async def do_kev_sync(
 async def main_async() -> None:
     """Set up logging and call the process function."""
     parser = argparse.ArgumentParser(
-        description="Cyber Hygiene known exploited vulnerability (KEV) synchronization tool",
+        description=(
+            "Cyber Hygiene known exploited vulnerability (KEV) " "synchronization tool"
+        ),
     )
     parser.add_argument(
         "--config-file",

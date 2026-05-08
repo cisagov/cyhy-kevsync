@@ -79,7 +79,7 @@ async def test_do_kev_sync_valid_config(capfd, db_uri, db_name):
 
 
 async def test_do_kev_sync_setup_logging(db_uri, db_name):
-    """Test that do_kev_sync ignores the log_level in the config if it's set via arg_log_level."""
+    """Test that log_level arg overrides value in config."""
     valid_config = KEVSyncConfig(
         kevsync=KEVSync(
             db_auth_uri=db_uri,
@@ -98,7 +98,7 @@ async def test_do_kev_sync_setup_logging(db_uri, db_name):
 
 
 async def test_do_kev_sync_no_schema(capfd, db_uri, db_name):
-    """Test that do_kev_sync skips schema validation if no schema is provided in the config."""
+    """Test that do_kev_sync skips schema validation if no schema is provided."""
     valid_config = KEVSyncConfig(
         kevsync=KEVSync(
             db_auth_uri=db_uri,
