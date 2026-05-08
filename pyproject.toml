@@ -87,6 +87,20 @@ mission = "https://www.cisa.gov/known-exploited-vulnerabilities-catalog"
 source = "https://github.com/cisagov/cyhy-kevsync"
 
 [tool.flake8]
+# In Pydantic v2 (which Beanie uses), @model_validator methods
+# function like class methods and typically take cls as the first
+# argument. However, flake8-pep8-naming assumes any method not
+# explicitly decorated with @classmethod is an instance method and
+# therefore expects the first argument to be self.
+#
+# This gets rid of N805 errors from flake8 due to these decorators.
+classmethod-decorators = [
+    "classmethod",
+    "field_validator",
+    "model_validator",
+    "root_validator",
+    "validator",
+]
 max-line-length = 80
 # Select (turn on)
 # * C: Complexity violations reported by mccabe -
