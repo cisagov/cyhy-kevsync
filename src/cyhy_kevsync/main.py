@@ -58,7 +58,7 @@ async def main_async() -> None:
     """Set up logging and call the process function."""
     parser = argparse.ArgumentParser(
         description=(
-            "Cyber Hygiene known exploited vulnerability (KEV) " "synchronization tool"
+            "Cyber Hygiene known exploited vulnerability (KEV) synchronization tool"
         ),
     )
     parser.add_argument(
