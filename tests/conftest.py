@@ -65,9 +65,9 @@ def mongodb_container(docker_client, mongo_image_tag):
             "start_period": 3000000000,  # ns -> 3 seconds
         },
     )
-    TIMEOUT = 180
+    timeout = 180
     # Wait for container to be healthy
-    for _ in range(TIMEOUT):
+    for _ in range(timeout):
         # Verify the container is still running
         container.reload()
         assert container.status == "running", "The container unexpectedly exited."
@@ -76,9 +76,10 @@ def mongodb_container(docker_client, mongo_image_tag):
             break
         time.sleep(1)
     else:
-        assert (
-            False
-        ), f"Container status did not transition to 'healthy' within {TIMEOUT} seconds."
+        raise AssertionError(
+            "Container status did not transition to "
+            f"'healthy' within {timeout} seconds."
+        )
 
     yield container
     container.stop()
@@ -109,10 +110,12 @@ def mongo_express_container(docker_client, db_uri, request):
     def fin():
         if request.config.getoption("--mongo-express"):
             print(
-                f'\n\nMongoDB is accessible at {db_uri} with database named "{DATABASE_NAME}"'
+                f"\n\nMongoDB is accessible at {db_uri} with database named "
+                f'"{DATABASE_NAME}"'
             )
             print(
-                f"Mongo Express is accessible at http://admin:pass@localhost:{MONGO_EXPRESS_PORT}\n"
+                "Mongo Express is accessible at "
+                f"http://admin:pass@localhost:{MONGO_EXPRESS_PORT}\n"
             )
             input("Press Enter to stop Mongo Express and MongoDB containers...")
         mongo_express_container.stop()
@@ -128,7 +131,10 @@ def db_uri(mongodb_container):
     mongo_port = mongodb_container.attrs["NetworkSettings"]["Ports"]["27017/tcp"][0][
         "HostPort"
     ]
-    uri = f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@localhost:{mongo_port}"
+    uri = (
+        f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@"
+        f"localhost:{mongo_port}"
+    )
     yield uri
 
 

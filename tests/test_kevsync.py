@@ -231,7 +231,7 @@ async def test_validate_kev_data_json_decode_error(mock_urlopen):
 @patch("cyhy_kevsync.kev_sync.logger")
 @patch("urllib.request.urlopen")
 async def test_validate_kev_data_count_mismatch(mock_urlopen, mock_logger):
-    """Test validating KEV data when the reported count does not match the actual count."""
+    """Test validating KEV data when reported count does not match actual count."""
     # Mocking the successful schema response
     mock_response = Mock()
     mock_response.status = 200

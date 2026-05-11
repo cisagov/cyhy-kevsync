@@ -1,4 +1,7 @@
-"""This module provides functions for fetching, validating, and synchronizing Known Exploited Vulnerabilities (KEV) data."""
+"""Functions for fetching, validating, and synchronizing KEV data.
+
+Here KEV stands for Known Exploited Vulnerabilities.
+"""
 
 # Standard Python Libraries
 import json
@@ -20,7 +23,8 @@ async def fetch_kev_data(kev_json_url: str) -> dict:
     """
     Fetch the KEV data from the given URL.
 
-    This function retrieves the Known Exploited Vulnerabilities (KEV) JSON data from the specified URL.
+    This function retrieves the Known Exploited Vulnerabilities (KEV)
+    JSON data from the specified URL.
 
     Args:
         kev_json_url (str): The URL to fetch the KEV JSON data from.
@@ -29,7 +33,8 @@ async def fetch_kev_data(kev_json_url: str) -> dict:
         dict: The KEV JSON data.
 
     Raises:
-        urllib.error.HTTPError: If the KEV JSON or schema cannot be retrieved or if validation fails.
+        urllib.error.HTTPError: If the KEV JSON or schema cannot be
+        retrieved or if validation fails.
         ValueError: If the URL scheme is not allowed.
     """
     # Create a Request object so we can test the safety of the URL
@@ -61,19 +66,27 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
     """
     Validate the KEV JSON data against the given schema.
 
-    This function validates the Known Exploited Vulnerabilities (KEV) JSON data against the provided schema.
-    It ensures that the JSON data conforms to the schema and raises an error if validation fails. The function
-    also logs the validation process and any discrepancies found in the vulnerability counts.
+    This function validates the Known Exploited Vulnerabilities (KEV)
+    JSON data against the provided schema.  It ensures that the JSON
+    data conforms to the schema and raises an error if validation
+    fails.  The function also logs the validation process and any
+    discrepancies found in the vulnerability counts.
 
     Args:
-        kev_json (dict): The KEV JSON data containing vulnerability information.
-        kev_schema_url (str): The URL to fetch the KEV JSON schema from for validation.
+        kev_json (dict): The KEV JSON data containing vulnerability
+        information.
+        kev_schema_url (str): The URL to fetch the KEV JSON schema
+        from for validation.
 
     Raises:
-        json.JSONDecodeError: If the response content is not valid JSON.
-        jsonschema.exceptions.SchemaError: If the KEV JSON schema itself is not valid.
-        jsonschema.exceptions.ValidationError: If the KEV JSON data does not conform to the schema.
-        urllib.error.URLError: If there is an issue with retrieving the KEV schema (e.g., HTTP error).
+        json.JSONDecodeError: If the response content is not valid
+        JSON.
+        jsonschema.exceptions.SchemaError: If the KEV JSON schema
+        itself is not valid.
+        jsonschema.exceptions.ValidationError: If the KEV JSON data
+        does not conform to the schema.
+        urllib.error.URLError: If there is an issue with retrieving
+        the KEV schema (e.g., HTTP error).
         ValueError: If the URL scheme is not allowed.
     """
     # Create a Request object to test the safety of the URL
@@ -129,18 +142,20 @@ async def sync_kev_docs(
     """
     Synchronize KEV documents with the latest KEV JSON data.
 
-    This function processes the KEV JSON data, updates the database by adding new KEV documents,
-    updating existing ones, and removing outdated ones. It ensures that the database contains the
-    most up-to-date KEV documents.
+    This function processes the KEV JSON data, updates the database by
+    adding new KEV documents, updating existing ones, and removing
+    outdated ones. It ensures that the database contains the most
+    up-to-date KEV documents.
 
     Args:
-        kev_json_feed (dict): The KEV JSON data containing vulnerability information.
+        kev_json_feed (dict): The KEV JSON data containing
+        vulnerability information.
 
     Returns:
         Tuple[List[KEVDoc], List[KEVDoc], List[KEVDoc]]:
-            - List created KEV documents.
-            - List updated KEV documents.
-            - List deleted KEV documents.
+            - List of created KEV documents.
+            - List of updated KEV documents.
+            - List of deleted KEV documents.
     """
     created_kev_docs: list[KEVDoc] = []
     deleted_kev_docs: list[KEVDoc] = []
