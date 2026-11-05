@@ -1,10 +1,9 @@
 """Test the main module."""
 
 # Standard Python Libraries
-import argparse
 import logging
 import sys
-from unittest.mock import AsyncMock, mock_open, patch
+from unittest.mock import AsyncMock, call, mock_open, patch
 
 # Third-Party Libraries
 from cyhy_logging import CYHY_ROOT_LOGGER
@@ -26,16 +25,12 @@ async def test_main_async_no_args():
     with (
         patch.object(sys, "argv", test_args),
         patch("cyhy_kevsync.main.do_kev_sync", new=AsyncMock()) as mock_do_kev_sync,
-        patch(
-            "argparse.ArgumentParser.parse_args",
-            return_value=argparse.Namespace(config_file=None, log_level="info"),
-        ),
         patch("logging.shutdown") as mock_logging_shutdown,
     ):
 
         await main_async()
 
-        mock_do_kev_sync.assert_called_once_with(None, "info")
+        mock_do_kev_sync.assert_called_once_with(None, None)
         mock_logging_shutdown.assert_called_once()
 
 
@@ -45,12 +40,6 @@ async def test_main_async_with_args():
     with (
         patch.object(sys, "argv", test_args),
         patch("cyhy_kevsync.main.do_kev_sync", new=AsyncMock()) as mock_do_kev_sync,
-        patch(
-            "argparse.ArgumentParser.parse_args",
-            return_value=argparse.Namespace(
-                config_file="test_config.yaml", log_level="debug"
-            ),
-        ),
         patch("logging.shutdown") as mock_logging_shutdown,
     ):
 
@@ -130,3 +119,43 @@ async def test_do_kev_sync_file_not_found(capfd):
         await do_kev_sync(config_file="non-existent_file", arg_log_level="debug")
     assert "No CyHy configuration file found" in capfd.readouterr().out
     assert exc_info.value.code == 1, "Expected exit code 1"
+
+
+@pytest.mark.parametrize(
+    "cli_args,config_level,expected_levels",
+    [
+        ([], "debug", ["info", "debug"]),
+        ([], "warning", ["info", "warning"]),
+        ([], None, ["info"]),
+        (["--log-level", "info"], "debug", ["info"]),
+        (["-l", "critical"], "warning", ["critical"]),
+    ],
+)
+async def test_main_async_log_level_precedence(cli_args, config_level, expected_levels):
+    """CLI overrides config, config overrides the info fallback."""
+    config = KEVSyncConfig(
+        kevsync=KEVSync(
+            db_auth_uri="mongodb://localhost:27017",
+            db_name="test",
+            log_level=config_level,
+        )
+    )
+    with (
+        patch.object(sys, "argv", ["cyhy-kevsync", *cli_args]),
+        patch("cyhy_kevsync.main.get_config", return_value=config),
+        patch("cyhy_kevsync.main.setup_logging") as mock_setup_logging,
+        patch("cyhy_kevsync.main.initialize_db", new_callable=AsyncMock),
+        patch("cyhy_kevsync.kev_sync.fetch_kev_data", new_callable=AsyncMock),
+        patch("cyhy_kevsync.kev_sync.validate_kev_data", new_callable=AsyncMock),
+        patch(
+            "cyhy_kevsync.kev_sync.sync_kev_docs",
+            new_callable=AsyncMock,
+            return_value=([], [], []),
+        ),
+        patch("logging.shutdown"),
+    ):
+        await main_async()
+
+    assert mock_setup_logging.call_args_list == [
+        call(level) for level in expected_levels
+    ]
