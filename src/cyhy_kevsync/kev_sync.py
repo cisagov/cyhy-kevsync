@@ -115,7 +115,9 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
             validate(instance=kev_json, schema=kev_schema)
             logger.info("KEV JSON is valid against the schema.")
         except ValidationError as e:
-            logger.error("KEV JSON data does not conform to the schema: %s", e.message)
+            logger.error(
+                "KEV JSON data does not conform to the schema: %s", e.message
+            )
             raise e
         except SchemaError as e:
             logger.error("The JSON schema was not valid: %s", e.message)
@@ -156,7 +158,18 @@ async def sync_kev_docs(
             - List of created KEV documents.
             - List of updated KEV documents.
             - List of deleted KEV documents.
+
+    Raises:
+        ValueError: If the feed contains duplicate CVE identifiers.
     """
+    # Reject duplicate IDs before any document can be changed.
+    seen_cve_ids: set[str] = set()
+    for kev_json in kev_json_feed["vulnerabilities"]:
+        cve_id = kev_json["cveID"]
+        if cve_id in seen_cve_ids:
+            raise ValueError(f"Duplicate CVE ID in KEV feed: {cve_id}")
+        seen_cve_ids.add(cve_id)
+
     created_kev_docs: list[KEVDoc] = []
     deleted_kev_docs: list[KEVDoc] = []
     updated_kev_docs: list[KEVDoc] = []
@@ -172,7 +185,9 @@ async def sync_kev_docs(
         description="Processing KEV feed",
     ):
         cve_id = kev_json.get("cveID")
-        known_ransomware = kev_json["knownRansomwareCampaignUse"].lower() == "known"
+        known_ransomware = (
+            kev_json["knownRansomwareCampaignUse"].lower() == "known"
+        )
         kev_doc = kev_map.pop(cve_id, None)
 
         if kev_doc:  # Update existing KEV doc
