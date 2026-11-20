@@ -69,8 +69,8 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
     This function validates the Known Exploited Vulnerabilities (KEV)
     JSON data against the provided schema.  It ensures that the JSON
     data conforms to the schema and raises an error if validation
-    fails.  The function also logs the validation process and any
-    discrepancies found in the vulnerability counts.
+    fails or the reported vulnerability count differs from the actual
+    number of entries. The function logs the validation process.
 
     Args:
         kev_json (dict): The KEV JSON data containing vulnerability
@@ -87,7 +87,8 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
         does not conform to the schema.
         urllib.error.URLError: If there is an issue with retrieving
         the KEV schema (e.g., HTTP error).
-        ValueError: If the URL scheme is not allowed.
+        ValueError: If the URL scheme is not allowed or the reported
+        vulnerability count does not match the entries.
     """
     # Create a Request object to test the safety of the URL
     kev_schema_request = urllib.request.Request(kev_schema_url)
@@ -124,11 +125,12 @@ async def validate_kev_data(kev_json: dict, kev_schema_url: str) -> None:
     reported_vuln_count = kev_json.get("count")
     actual_vuln_count = len(kev_json["vulnerabilities"])
     if reported_vuln_count != actual_vuln_count:
-        logger.warning(
-            "Reported vulnerability count (%d) does not match actual count (%d).",
-            reported_vuln_count,
-            actual_vuln_count,
+        message = (
+            f"Reported vulnerability count ({reported_vuln_count}) does not "
+            f"match actual count ({actual_vuln_count})."
         )
+        logger.error(message)
+        raise ValueError(message)
     else:
         logger.info(
             "Reported vulnerability count matches actual count: %d",

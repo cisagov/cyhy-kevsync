@@ -242,14 +242,13 @@ async def test_validate_kev_data_count_mismatch(mock_urlopen, mock_logger):
     bad_kev_json = VALID_KEV_JSON.copy()
     bad_kev_json["count"] -= 1
 
-    await validate_kev_data(bad_kev_json, DEFAULT_KEV_SCHEMA_URL)
+    with pytest.raises(ValueError, match="Reported vulnerability count"):
+        await validate_kev_data(bad_kev_json, DEFAULT_KEV_SCHEMA_URL)
 
-    # Check that the warning was logged
     real_vuln_count = len(bad_kev_json["vulnerabilities"])
-    mock_logger.warning.assert_called_once_with(
-        "Reported vulnerability count (%d) does not match actual count (%d).",
-        bad_kev_json["count"],
-        real_vuln_count,
+    mock_logger.error.assert_called_once_with(
+        f"Reported vulnerability count ({bad_kev_json['count']}) does not "
+        f"match actual count ({real_vuln_count})."
     )
 
 
